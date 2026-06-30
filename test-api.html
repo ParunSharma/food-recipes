@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .result {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Gemini API Test</h1>
+    <p>Testing API key: <code>AIzaSyAwM4lCpoDUE737agc10s0hGf2EiIJXCyA</code></p>
+    <button onclick="testAPI()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Test API</button>
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        // Test script to verify Gemini API key
+        const GEMINI_API_KEY = "AIzaSyAwM4lCpoDUE737agc10s0hGf2EiIJXCyA";
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<p>Testing API...</p>';
+
+            console.log("Testing Gemini API...");
+
+            const prompt = "Say hello in one word";
+
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                console.log("Response status:", response.status);
+                const result = await response.json();
+                console.log("Response:", JSON.stringify(result, null, 2));
+
+                if (response.ok) {
+                    const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    resultDiv.innerHTML = `
+                <h2 class="success">✅ API is Working!</h2>
+                <p><strong>Status:</strong> ${response.status}</p>
+                <p><strong>Response:</strong> ${responseText}</p>
+                <details>
+                    <summary>Full Response</summary>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                </details>
+            `;
+                } else {
+                    resultDiv.innerHTML = `
+                <h2 class="error">❌ API Error</h2>
+                <p><strong>Status:</strong> ${response.status}</p>
+                <p><strong>Error:</strong> ${result.error?.message || "Unknown error"}</p>
+                <details>
+                    <summary>Full Response</summary>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                </details>
+            `;
+                }
+            } catch (error) {
+                console.error("❌ Network error:", error);
+                resultDiv.innerHTML = `
+            <h2 class="error">❌ Network Error</h2>
+            <p>${error.message}</p>
+        `;
+            }
+        }
+
+        // Auto-run test on page load
+        window.onload = () => {
+            testAPI();
+        };
+    </script>
+</body>
+
+</html>

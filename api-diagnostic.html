@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API Diagnostic Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .api-key {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 20px 0;
+        }
+
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .test-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-success {
+            background: #28a745;
+        }
+
+        .status-error {
+            background: #dc3545;
+        }
+
+        .status-pending {
+            background: #ffc107;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔍 Gemini API Diagnostic Tool</h1>
+        <p>This tool will help diagnose issues with your Gemini API key</p>
+
+        <div class="api-key">
+            <strong>API Key:</strong> AIzaSyAwM4lCpoDUE737agc10s0hGf2EiIJXCyA
+        </div>
+
+        <!-- Test 1: List Models -->
+        <div class="test-section">
+            <h2>Test 1: Verify API Key (List Models)</h2>
+            <p>This test checks if your API key is valid by listing available models.</p>
+            <button onclick="testListModels()" id="btn1">Run Test 1</button>
+            <div id="result1" class="result"></div>
+        </div>
+
+        <!-- Test 2: Generate Content -->
+        <div class="test-section">
+            <h2>Test 2: Generate Simple Content</h2>
+            <p>This test tries to generate a simple response from Gemini.</p>
+            <button onclick="testGenerateContent()" id="btn2">Run Test 2</button>
+            <div id="result2" class="result"></div>
+        </div>
+
+        <!-- Test 3: Recipe Generation -->
+        <div class="test-section">
+            <h2>Test 3: Generate Recipe (Full Test)</h2>
+            <p>This test simulates the actual recipe generation used in your app.</p>
+            <button onclick="testRecipeGeneration()" id="btn3">Run Test 3</button>
+            <div id="result3" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Summary</h2>
+            <div id="summary" class="result info">
+                <p>Run the tests above to diagnose your API connection.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = "AIzaSyAwM4lCpoDUE737agc10s0hGf2EiIJXCyA";
+        const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+
+        let testResults = {
+            test1: null,
+            test2: null,
+            test3: null
+        };
+
+        // Test 1: List Models
+        async function testListModels() {
+            const btn = document.getElementById('btn1');
+            const result = document.getElementById('result1');
+
+            btn.disabled = true;
+            result.className = 'result show info';
+            result.innerHTML = '<div class="loading"></div> Testing API key...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/models?key=${API_KEY}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    testResults.test1 = true;
+                    const models = data.models || [];
+                    result.className = 'result show success';
+                    result.innerHTML = `
+                        <h3><span class="status-indicator status-success"></span>✅ Test 1 PASSED</h3>
+                        <p><strong>Status:</strong> API key is valid!</p>
+                        <p><strong>Available Models:</strong> ${models.length}</p>
+                        <details>
+                            <summary>View Models</summary>
+                            <pre>${JSON.stringify(models.map(m => m.name), null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    testResults.test1 = false;
+                    result.className = 'result show error';
+                    result.innerHTML = `
+                        <h3><span class="status-indicator status-error"></span>❌ Test 1 FAILED</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Error:</strong> ${data.error?.message || 'Unknown error'}</p>
+                        <details>
+                            <summary>Full Error</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                        <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                            <strong>💡 Possible Solutions:</strong>
+                            <ul style="margin-left: 20px; margin-top: 10px;">
+                                <li>Check if API key is correct</li>
+                                <li>Verify Gemini API is enabled in Google Cloud Console</li>
+                                <li>Check API key restrictions (IP, referrer)</li>
+                                <li>Try generating a new API key at <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></li>
+                            </ul>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                testResults.test1 = false;
+                result.className = 'result show error';
+                result.innerHTML = `
+                    <h3><span class="status-indicator status-error"></span>❌ Test 1 FAILED</h3>
+                    <p><strong>Network Error:</strong> ${error.message}</p>
+                    <p>This might be a CORS issue or network connectivity problem.</p>
+                `;
+            }
+
+            btn.disabled = false;
+            updateSummary();
+        }
+
+        // Test 2: Generate Content
+        async function testGenerateContent() {
+            const btn = document.getElementById('btn2');
+            const result = document.getElementById('result2');
+
+            btn.disabled = true;
+            result.className = 'result show info';
+            result.innerHTML = '<div class="loading"></div> Generating content...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: 'Say "Hello World" and nothing else.' }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    testResults.test2 = true;
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+                    result.className = 'result show success';
+                    result.innerHTML = `
+                        <h3><span class="status-indicator status-success"></span>✅ Test 2 PASSED</h3>
+                        <p><strong>Status:</strong> Content generation works!</p>
+                        <p><strong>Response:</strong> "${text}"</p>
+                        <details>
+                            <summary>Full Response</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    testResults.test2 = false;
+                    result.className = 'result show error';
+                    result.innerHTML = `
+                        <h3><span class="status-indicator status-error"></span>❌ Test 2 FAILED</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Error:</strong> ${data.error?.message || 'Unknown error'}</p>
+                        <details>
+                            <summary>Full Error</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                }
+            } catch (error) {
+                testResults.test2 = false;
+                result.className = 'result show error';
+                result.innerHTML = `
+                    <h3><span class="status-indicator status-error"></span>❌ Test 2 FAILED</h3>
+                    <p><strong>Network Error:</strong> ${error.message}</p>
+                `;
+            }
+
+            btn.disabled = false;
+            updateSummary();
+        }
+
+        // Test 3: Recipe Generation
+        async function testRecipeGeneration() {
+            const btn = document.getElementById('btn3');
+            const result = document.getElementById('result3');
+
+            btn.disabled = true;
+            result.className = 'result show info';
+            result.innerHTML = '<div class="loading"></div> Generating recipe...';
+
+            const prompt = `Create a detailed recipe for "Chocolate Cake" with the following structure:
+            - Title: A creative name for the dish
+            - Image: A relevant Unsplash image URL
+            - Ingredients: A list of ingredients with measurements
+            - Instructions: Step-by-step cooking instructions
+            - Cooking Tips: 3-5 expert cooking tips
+            
+            Format the response as JSON with the following keys:
+            {
+                "title": "Recipe Title",
+                "image": "image_url",
+                "ingredients": ["1 cup Ingredient 1", "2 tbsp Ingredient 2"],
+                "instructions": ["Step 1", "Step 2"],
+                "cooking_tips": ["Tip 1", "Tip 2"]
+            }`;
+
+            try {
+                const response = await fetch(`${BASE_URL}/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    try {
+                        // Try to parse the JSON from the response
+                        const jsonStart = textResponse.indexOf('{');
+                        const jsonEnd = textResponse.lastIndexOf('}') + 1;
+                        const jsonString = textResponse.substring(jsonStart, jsonEnd);
+                        const recipe = JSON.parse(jsonString);
+
+                        testResults.test3 = true;
+                        result.className = 'result show success';
+                        result.innerHTML = `
+                            <h3><span class="status-indicator status-success"></span>✅ Test 3 PASSED</h3>
+                            <p><strong>Status:</strong> Recipe generation works perfectly!</p>
+                            <p><strong>Recipe:</strong> ${recipe.title}</p>
+                            <p><strong>Ingredients:</strong> ${recipe.ingredients?.length || 0}</p>
+                            <p><strong>Steps:</strong> ${recipe.instructions?.length || 0}</p>
+                            <p><strong>Tips:</strong> ${recipe.cooking_tips?.length || 0}</p>
+                            <details>
+                                <summary>View Recipe</summary>
+                                <pre>${JSON.stringify(recipe, null, 2)}</pre>
+                            </details>
+                        `;
+                    } catch (parseError) {
+                        testResults.test3 = false;
+                        result.className = 'result show warning';
+                        result.innerHTML = `
+                            <h3><span class="status-indicator status-error"></span>⚠️ Test 3 PARTIAL</h3>
+                            <p><strong>Status:</strong> API responded but JSON parsing failed</p>
+                            <p><strong>Parse Error:</strong> ${parseError.message}</p>
+                            <details>
+                                <summary>Raw Response</summary>
+                                <pre>${textResponse}</pre>
+                            </details>
+                        `;
+                    }
+                } else {
+                    testResults.test3 = false;
+                    result.className = 'result show error';
+                    result.innerHTML = `
+                        <h3><span class="status-indicator status-error"></span>❌ Test 3 FAILED</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Error:</strong> ${data.error?.message || 'Unknown error'}</p>
+                        <details>
+                            <summary>Full Error</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                }
+            } catch (error) {
+                testResults.test3 = false;
+                result.className = 'result show error';
+                result.innerHTML = `
+                    <h3><span class="status-indicator status-error"></span>❌ Test 3 FAILED</h3>
+                    <p><strong>Network Error:</strong> ${error.message}</p>
+                `;
+            }
+
+            btn.disabled = false;
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            const total = Object.values(testResults).filter(r => r !== null).length;
+            const passed = Object.values(testResults).filter(r => r === true).length;
+
+            if (total === 0) return;
+
+            summary.className = 'result show info';
+
+            if (passed === 3) {
+                summary.className = 'result show success';
+                summary.innerHTML = `
+                    <h3>🎉 All Tests Passed!</h3>
+                    <p>Your API key is working correctly. The Food Finder app should work fine.</p>
+                    <p><strong>Next Step:</strong> Open <code>index6.html</code> and try searching for a recipe!</p>
+                `;
+            } else if (passed === 0 && total > 0) {
+                summary.className = 'result show error';
+                summary.innerHTML = `
+                    <h3>❌ All Tests Failed</h3>
+                    <p>There's an issue with your API key or configuration.</p>
+                    <p><strong>Recommended Actions:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Verify the API key at <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></li>
+                        <li>Check if Gemini API is enabled in Google Cloud Console</li>
+                        <li>Try generating a new API key</li>
+                        <li>Check your internet connection</li>
+                    </ul>
+                `;
+            } else {
+                summary.className = 'result show warning';
+                summary.innerHTML = `
+                    <h3>⚠️ Partial Success</h3>
+                    <p>${passed} out of ${total} tests passed.</p>
+                    <p>Review the failed tests above for more details.</p>
+                `;
+            }
+        }
+
+        // Auto-run Test 1 on page load
+        window.onload = () => {
+            setTimeout(() => testListModels(), 500);
+        };
+    </script>
+</body>
+
+</html>

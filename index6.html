@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Finder - AI-Powered Recipe Explorer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            min-height: 100vh;
+            color: #333;
+            padding-bottom: 60px;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ff6b6b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a:hover {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
+                url('https://images.unsplash.com/photo-1490818387583-1baba5e638af?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            padding: 0 2rem;
+        }
+
+        .search-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 1.2rem 1.8rem;
+            font-size: 1.2rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+            transition: border-color 0.3s ease;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-input:focus {
+            border-color: #ff6b6b;
+        }
+
+        .search-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 1.2rem 2.5rem;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 0 0.5rem 1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+        }
+
+        .filter-btn {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .recipe-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            margin-bottom: 3rem;
+            display: none;
+        }
+
+        .recipe-image-container {
+            height: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .recipe-image-container:hover .recipe-image {
+            transform: scale(1.05);
+        }
+
+        .recipe-title {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            color: white;
+            padding: 2rem 2rem 1.5rem;
+            font-size: 2.2rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .recipe-content {
+            padding: 2.5rem;
+        }
+
+        .section-title {
+            color: #ff6b6b;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ingredients-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .ingredient-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .ingredient-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .ingredient-icon {
+            font-size: 2rem;
+            color: #ff6b6b;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ingredient-info h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .ingredient-info p {
+            color: #666;
+        }
+
+        .instructions {
+            background: #fff8f8;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 1rem;
+            line-height: 1.7;
+        }
+
+        .instructions ol {
+            padding-left: 1.5rem;
+        }
+
+        .instructions li {
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+        }
+
+        .cooking-tips {
+            background: #e8f4ff;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .cooking-tips h3 {
+            color: #4facfe;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tips-list {
+            padding-left: 1.5rem;
+        }
+
+        .tips-list li {
+            margin-bottom: 0.8rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .tips-list li:before {
+            content: "💡";
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: #ff6b6b;
+            display: none;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #ff6b6b;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        .featured-recipes {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .recipe-preview {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .recipe-preview:hover {
+            transform: translateY(-10px);
+        }
+
+        .preview-image {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .preview-content {
+            padding: 1.5rem;
+        }
+
+        .preview-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            color: #333;
+        }
+
+        .preview-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .preview-tag {
+            background: #f0f0f0;
+            color: #666;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .preview-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .preview-btn:hover {
+            background: #ff5252;
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .api-status {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem auto;
+            max-width: 800px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-active {
+            background: #28a745;
+        }
+
+        .status-inactive {
+            background: #dc3545;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .search-btn {
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+
+            .recipe-image-container {
+                height: 300px;
+            }
+
+            .recipe-title {
+                font-size: 1.8rem;
+            }
+
+            .ingredients-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-utensils"></i>
+                Food Finder
+            </div>
+            <ul class="nav-links">
+                <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="#"><i class="fas fa-leaf"></i> Vegetarian</a></li>
+                <li><a href="#"><i class="fas fa-drumstick-bite"></i> Non-Veg</a></li>
+                <li><a href="#"><i class="fas fa-user"></i> Profile</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Discover Delicious Recipes</h1>
+            <p>Find, cook, and enjoy amazing dishes with our AI-powered recipe explorer</p>
+        </div>
+    </section>
+
+    <!-- API Status -->
+    <div class="api-status">
+        <p><span class="status-indicator status-active"></span> Recipe API is currently <strong>online</strong> and
+            ready to serve your culinary needs!</p>
+    </div>
+
+    <!-- Featured Recipes -->
+    <section class="featured-recipes">
+        <div class="section-header">
+            <h2>Popular Recipes</h2>
+            <p>Try these crowd favorites to get started</p>
+        </div>
+        <div class="recipe-grid">
+            <div class="recipe-preview" onclick="showRecipe('Chocolate Cake')">
+                <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                    alt="Chocolate Cake" class="preview-image">
+                <div class="preview-content">
+                    <h3 class="preview-title">Chocolate Cake</h3>
+                    <div class="preview-tags">
+                        <span class="preview-tag">Dessert</span>
+                        <span class="preview-tag">Vegetarian</span>
+                        <span class="preview-tag">Baking</span>
+                    </div>
+                    <button class="preview-btn">View Recipe <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            <div class="recipe-preview" onclick="showRecipe('Spaghetti Carbonara')">
+                <img src="https://images.unsplash.com/photo-1588013273468-315fd88ea34c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                    alt="Spaghetti Carbonara" class="preview-image">
+                <div class="preview-content">
+                    <h3 class="preview-title">Spaghetti Carbonara</h3>
+                    <div class="preview-tags">
+                        <span class="preview-tag">Pasta</span>
+                        <span class="preview-tag">Non-Veg</span>
+                        <span class="preview-tag">Italian</span>
+                    </div>
+                    <button class="preview-btn">View Recipe <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            <div class="recipe-preview" onclick="showRecipe('Avocado Toast')">
+                <img src="https://images.unsplash.com/photo-1551892374-ecf8754cf8b0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                    alt="Avocado Toast" class="preview-image">
+                <div class="preview-content">
+                    <h3 class="preview-title">Avocado Toast</h3>
+                    <div class="preview-tags">
+                        <span class="preview-tag">Breakfast</span>
+                        <span class="preview-tag">Vegetarian</span>
+                        <span class="preview-tag">Healthy</span>
+                    </div>
+                    <button class="preview-btn">View Recipe <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-container">
+        <div class="search-box">
+            <h2 style="margin-bottom: 1.5rem; color: #333;">Find Your Perfect Recipe</h2>
+            <input type="text" id="searchInput" class="search-input"
+                placeholder="Search for a dish (e.g., pasta, cake, salad)...">
+            <br>
+            <button onclick="searchRecipe()" class="search-btn">
+                <i class="fas fa-search"></i> Search Recipe
+            </button>
+            <button onclick="getCookingTips()" class="search-btn">
+                <i class="fas fa-robot"></i> Get AI Cooking Tips
+            </button>
+
+            <div class="filter-container">
+                <button onclick="filterRecipes('vegetarian')" class="filter-btn">
+                    <i class="fas fa-leaf"></i> Vegetarian
+                </button>
+                <button onclick="filterRecipes('non-vegetarian')" class="filter-btn">
+                    <i class="fas fa-drumstick-bite"></i> Non-Vegetarian
+                </button>
+                <button onclick="filterRecipes('healthy')" class="filter-btn">
+                    <i class="fas fa-heartbeat"></i> Healthy
+                </button>
+                <button onclick="filterRecipes('quick')" class="filter-btn">
+                    <i class="fas fa-bolt"></i> Quick
+                </button>
+                <button onclick="filterRecipes('dessert')" class="filter-btn">
+                    <i class="fas fa-ice-cream"></i> Dessert
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Loading Indicator -->
+    <div class="loading" id="loadingIndicator">
+        <div class="spinner"></div>
+        <p>Preparing your delicious recipe...</p>
+    </div>
+
+    <!-- Results Section -->
+    <section class="results-container">
+        <div class="recipe-card" id="recipeResult">
+            <div class="recipe-image-container">
+                <img src="" alt="Recipe Image" class="recipe-image" id="recipeImage">
+                <h2 class="recipe-title" id="recipeTitle"></h2>
+            </div>
+
+            <div class="recipe-content">
+                <div class="section-title">
+                    <i class="fas fa-carrot"></i>
+                    <h2>Ingredients</h2>
+                </div>
+                <div class="ingredients-list" id="ingredientsList"></div>
+
+                <div class="section-title">
+                    <i class="fas fa-book-open"></i>
+                    <h2>Cooking Instructions</h2>
+                </div>
+                <div class="instructions" id="instructions"></div>
+
+                <div class="cooking-tips" id="cookingTips" style="display: none;">
+                    <h3><i class="fas fa-lightbulb"></i> AI Cooking Tips</h3>
+                    <ul class="tips-list" id="tipsList"></ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Food Finder Recipe Explorer | Discover Delicious Recipes From Around The World</p>
+    </footer>
+
+    <script>
+        // DOM Elements
+        const recipeResult = document.getElementById('recipeResult');
+        const recipeImage = document.getElementById('recipeImage');
+        const recipeTitle = document.getElementById('recipeTitle');
+        const ingredientsList = document.getElementById('ingredientsList');
+        const instructions = document.getElementById('instructions');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const searchInput = document.getElementById('searchInput');
+        const cookingTips = document.getElementById('cookingTips');
+        const tipsList = document.getElementById('tipsList');
+
+        // API Configuration
+        const GEMINI_API_KEY = "AIzaSyAwM4lCpoDUE737agc10s0hGf2EiIJXCyA";
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+
+        // Show loading animation
+        function showLoading() {
+            recipeResult.style.display = 'none';
+            cookingTips.style.display = 'none';
+            loadingIndicator.style.display = 'block';
+        }
+
+        // Hide loading animation
+        function hideLoading() {
+            loadingIndicator.style.display = 'none';
+        }
+
+        // Search for recipe
+        async function searchRecipe() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                alert("Please enter a dish to search for");
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // Get recipe from Gemini API
+                const recipeData = await fetchRecipeFromGemini(query);
+                displayRecipe(recipeData);
+            } catch (error) {
+                hideLoading();
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        // Fetch recipe data from Gemini
+        async function fetchRecipeFromGemini(query) {
+            const prompt = `Create a detailed recipe for "${query}" with the following structure:
+            - Title: A creative name for the dish
+            - Image: A relevant Unsplash image URL for the dish (use format: https://source.unsplash.com/800x600/?${encodeURIComponent(query)})
+            - Ingredients: A list of ingredients with measurements
+            - Instructions: Step-by-step cooking instructions
+            - Cooking Tips: 3-5 expert cooking tips for this dish
+            
+            Format the response as JSON with the following keys:
+            {
+                "title": "Recipe Title",
+                "image": "image_url",
+                "ingredients": ["1 cup Ingredient 1", "2 tbsp Ingredient 2", ...],
+                "instructions": ["Step 1", "Step 2", ...],
+                "cooking_tips": ["Tip 1", "Tip 2", ...]
+            }`;
+
+            try {
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                const result = await response.json();
+                const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                // Find the JSON part in the response
+                const jsonStart = textResponse.indexOf('{');
+                const jsonEnd = textResponse.lastIndexOf('}') + 1;
+                const jsonString = textResponse.substring(jsonStart, jsonEnd);
+
+                return JSON.parse(jsonString);
+            } catch (err) {
+                console.error("Gemini API error:", err);
+                throw new Error("Failed to fetch recipe data");
+            }
+        }
+
+        // Display recipe
+        function displayRecipe(recipeData) {
+            recipeImage.src = recipeData.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80";
+            recipeTitle.textContent = recipeData.title || "Delicious Recipe";
+
+            // Build ingredients list
+            ingredientsList.innerHTML = '';
+            recipeData.ingredients.forEach(ingredient => {
+                ingredientsList.innerHTML += `
+                    <div class="ingredient-card">
+                        <div class="ingredient-icon">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                        <div class="ingredient-info">
+                            <h3>${ingredient}</h3>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Build instructions
+            instructions.innerHTML = '<ol>';
+            recipeData.instructions.forEach((step, index) => {
+                instructions.innerHTML += `<li>${step}</li>`;
+            });
+            instructions.innerHTML += '</ol>';
+
+            // Build cooking tips if available
+            if (recipeData.cooking_tips && recipeData.cooking_tips.length > 0) {
+                tipsList.innerHTML = '';
+                recipeData.cooking_tips.forEach(tip => {
+                    tipsList.innerHTML += `<li>${tip}</li>`;
+                });
+                cookingTips.style.display = 'block';
+            } else {
+                cookingTips.style.display = 'none';
+            }
+
+            // Show result
+            recipeResult.style.display = 'block';
+            hideLoading();
+
+            // Scroll to recipe
+            recipeResult.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Get additional cooking tips
+        async function getCookingTips() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                alert("Please enter a dish first");
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const prompt = `Provide 5 expert cooking tips for making "${query}". 
+                Format the response as a JSON array: 
+                ["Tip 1", "Tip 2", "Tip 3", "Tip 4", "Tip 5"]`;
+
+                const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                const result = await response.json();
+                const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                // Find the JSON part in the response
+                const jsonStart = textResponse.indexOf('[');
+                const jsonEnd = textResponse.lastIndexOf(']') + 1;
+                const jsonString = textResponse.substring(jsonStart, jsonEnd);
+                const tips = JSON.parse(jsonString);
+
+                // Display tips
+                tipsList.innerHTML = '';
+                tips.forEach(tip => {
+                    tipsList.innerHTML += `<li>${tip}</li>`;
+                });
+                cookingTips.style.display = 'block';
+                hideLoading();
+
+                // Scroll to tips
+                cookingTips.scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                hideLoading();
+                alert("Failed to generate cooking tips");
+            }
+        }
+
+        // Show recipe directly (for featured recipes)
+        function showRecipe(recipeName) {
+            searchInput.value = recipeName;
+            searchRecipe();
+        }
+
+        // Filter recipes
+        function filterRecipes(type) {
+            alert(`Showing ${type} recipes...`);
+            // In a real app, this would filter the recipe list
+        }
+
+        // Enable search with Enter key
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchRecipe();
+            }
+        });
+
+        // Initialize with a recipe
+        window.onload = function () {
+            setTimeout(() => {
+                showRecipe('Chocolate Cake');
+            }, 1000);
+        };
+    </script>
+</body>
+
+</html>
